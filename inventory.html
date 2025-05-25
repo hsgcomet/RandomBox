@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>인벤토리</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0a0d2b;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      color: gold;
+      margin: 20px 0;
+    }
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 15px;
+      padding: 20px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .item-card {
+      background-color: #1e2547;
+      border: 2px solid #444;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px #0005;
+    }
+    .item-card img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+    .item-name {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .item-count {
+      color: #0ff;
+    }
+    .zero-count {
+      opacity: 0.3;
+    }
+    .inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 800px; /* 더 넓게 조정 가능 */
+  max-height: 80vh;  /* 너무 길어지는 걸 방지 */
+  overflow-y: auto;  /* 스크롤 가능하게 */
+}
+
+    button {
+      background: gold;
+      color: #333;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎒 인벤토리</h1>
+  <div class="inventory-grid" id="inventoryGrid"></div>
+  <button onclick="location.href='index.html'">← 돌아가기</button>
+
+  <script>
+    // 쿠키 대신 localStorage 사용
+function getData(key) {
+  const value = localStorage.getItem(key);
+  return value ? decodeURIComponent(value) : null;
+}
+
+function setData(key, value) {
+  localStorage.setItem(key, encodeURIComponent(value));
+}
+
+
+
+    function getCookie(name) {
+  const value = localStorage.getItem(name);
+  return value ? decodeURIComponent(value) : null;
+}
+
+function setData(name, value) {
+  localStorage.setItem(name, encodeURIComponent(value));
+}
+
+
+    function loadInventory() {
+      const data = getCookie("inventory");
+      if (!data) return;
+
+      const inventory = JSON.parse(data);
+      const grid = document.getElementById("inventoryGrid");
+
+      inventory.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "item-card";
+        if (item.count === 0) card.classList.add("zero-count");
+
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" />
+          <div class="item-name">${item.name}</div>
+          <div class="item-count">x ${item.count}</div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    loadInventory();
+  </script>
+</body>
+</html>
