@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>생일 선물 뽑기</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0a0d2b;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .container {
+      margin-top: 30px;
+      width: 400px;
+      background: #151a3a;
+      border: 4px solid gold;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 30px #000a, inset 0 0 20px gold;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      color: gold;
+    }
+    #coinDisplay {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+      color: #0ff;
+    }
+    .box-option {
+      width: 100px;
+      height: 120px;
+      background: #1e2547;
+      border-radius: 15px;
+      cursor: pointer;
+      margin: 10px;
+      display: inline-block;
+      box-shadow: 0 0 10px #0af;
+    }
+    .box-option.selected {
+      border: 3px solid gold;
+      box-shadow: 0 0 20px gold;
+    }
+    .box-option img {
+      width: 70px;
+      margin-top: 10px;
+    }
+    .box-option span {
+      display: block;
+      margin-top: 5px;
+      color: #a6d7ff;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #draw1Btn {
+      background: linear-gradient(45deg, gold, #ffec8b);
+      color: #333;
+      border: none;
+      box-shadow: 0 0 10px gold;
+    }
+    #draw10Btn {
+      background: #444;
+      color: #fff;
+      border: 2px solid #0af;
+    }
+    .draw-screen {
+      position: fixed;
+      top: 0;
+      left:  0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle, #001018, #000);
+      z-index: 9999;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .draw-team {
+      font-size: 2rem;
+      font-weight: bold;
+      text-shadow: 0 0 30px;
+      margin-bottom: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .draw-item {
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .draw-item img {
+      width: 160px;
+      height: 160px;
+      object-fit: contain;
+      margin-bottom: 10px;
+      border-radius: 20px;
+      box-shadow: 0 0 25px gold;
+    }
+    .draw-item .name {
+      font-size: 1.8rem;
+      text-shadow: 0 0 15px;
+      font-weight: bold;
+    }
+    #resultGrid .result-card {
+      width: 100px;
+      text-align: center;
+      background: #1e2547;
+      padding: 10px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px #0af;
+    }
+    #resultGrid .result-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RPG 랜덤 박스</h1>
+    <div id="coinDisplay">코인: <span id="coinAmount">0</span></div>
+
+    <div id="boxSelectArea">
+      <div class="box-option selected" data-box="normal">
+        <img src="박소원생일/다운로드.png" />
+        <span>일반</span>
+      </div>
+      <div class="box-option" data-box="premium">
+        <img src="박소원생일/다운로드 (1).png" />
+        <span>고급</span>
+      </div>
+      <div class="box-option" data-box="legendary">
+        <img src="박소원생일/다운로드 (2).png" />
+        <span>전설</span>
+      </div>
+    </div>
+
+    <button id="draw1Btn">1회 뽑기</button>
+    <button id="draw10Btn">10회 뽑기</button>
+
+    <div id="drawCostDisplay" style="margin-top: 10px; font-size: 0.95rem; color: #aaa;">
+      💰 1회: 100 / 10회: 1000
+    </div>
+
+    <button onclick="resetData()" style="background:#b00; color:#fff; font-weight:bold;">리셋</button>
+    <button onclick="location.href='inventory.html'" style="margin-top:10px;">인벤토리</button>
+    <button onclick="location.href='setting.html'" style="margin-top:10px;">설정</button>
+  </div>
+
+  <div class="draw-screen" id="drawScreen">
+    <div class="draw-team" id="drawTeam"></div>
+    <div class="draw-item" id="drawItem">
+      <img src="" id="drawItemImg" />
+      <div class="name" id="drawItemName"></div>
+    </div>
+  </div>
+
+  <div class="draw-screen" id="drawResults">
+    <div class="draw-team" id="multiDrawMessage">중복 아이템</div>
+    <div id="resultGrid" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
+    <button onclick="hideDrawResults()" style="margin-top: 20px; padding: 10px 20px; font-weight: bold;">닫기</button>
+  </div>
+
+  <audio id="soundStart" src="sounds/3.mp3" preload="auto"></audio>
+  <audio id="soundText" src="sounds/2.mp3" preload="auto"></audio>
+  <audio id="soundFinal" src="sounds/1.mp3" preload="auto"></audio>
+
+  <script>
+    const grades = {
+      common:  { name: "일반", color: "#ccc" },
+      rare:    { name: "희귀", color: "#4ae" },
+      epic:    { name: "초희귀", color: "#b4f" },
+      hero:    { name: "영웅", color: "#f93" },
+      myth:    { name: "신화", color: "#ff0" },
+      legend:  { name: "전설", color: "#f00" }
+    };
+
+    const boxes = {
+      normal: [
+        { name: "양승민 옆 모습", image: "박소원생일/1.jpg", grade: "common", chance: 50, messages: ["엇! 버스에 무언가..", "이건... 빨간색!"] },
+        { name: "그냥 흰 배경", image: "박소원생일/2.jpg", grade: "common", chance: 30, messages: ["흰색의!", "아무것도 없는!"] },
+        { name: "박소원 리즈 시절", image: "박소원생일/3.jpg", grade: "rare", chance: 5, messages: ["쪼그만한!", "귀여..ㅇ"] },
+        { name: "해정이의 꽃", image: "박소원생일/4.jpg", grade: "rare", chance: 5, messages: ["엄청 이쁜!", "화려한!"] },
+        { name: "곰돌이 찰칵!", image: "박소원생일/5.jpg", grade: "rare", chance: 5, messages: ["아주아주 귀여운!", "애기곰!"] },
+        { name: "합기도 박소원", image: "박소원생일/6.jpg", grade: "rare", chance: 5, messages: ["도복의!", "합기도!"] },
+
+    ],
+      premium: [
+        { name: "양승민 옆 모습", image: "박소원생일/1.jpg", grade: "common", chance: 10, messages: ["엇! 버스에 무언가..", "이건... 빨간색!"] },
+        { name: "그냥 흰 배경", image: "박소원생일/2.jpg", grade: "common", chance: 5, messages: ["흰색의!", "아무것도 없는!"] },
+        { name: "박소원 리즈 시절", image: "박소원생일/3.jpg", grade: "rare", chance: 5, messages: ["쪼그만한!", "귀여..ㅇ"] },
+        { name: "해정이의 꽃", image: "박소원생일/4.jpg", grade: "rare", chance: 10, messages: ["엄청 이쁜!", "화려한!"] },
+        { name: "곰돌이 찰칵!", image: "박소원생일/5.jpg", grade: "rare", chance: 10, messages: ["아주아주 귀여운!", "애기곰!"] },
+        { name: "합기도 박소원", image: "박소원생일/6.jpg", grade: "rare", chance: 10, messages: ["도복의!", "합기도!"] },
+        { name: "시발년 정아영", image: "박소원생일/7.jpg", grade: "epic", chance: 5, messages: ["키 ㅈㄴ 작은!", "ㅅㅂ년!"] },
+        { name: "바른 나무 위원회", image: "박소원생일/8.jpg", grade: "epic", chance: 5, messages: ["바른!", "나무 위원회!"] },
+        { name: "카훗 3등", image: "박소원생일/9.jpg", grade: "epic", chance: 5, messages: ["해정이의!", "3등상!"] },
+        { name: "잼민펀치", image: "박소원생일/10.jpg", grade: "epic", chance: 10, messages: ["받아라!", "잼민이의!"] },
+        { name: "비눗방울 박은정", image: "박소원생일/11.jpg", grade: "hero", chance: 3, messages: ["못생긴!", "비눗방울 속!"] },
+        { name: "감성충 해정이", image: "박소원생일/12.jpg", grade: "hero", chance: 1, messages: ["한 남자의", "슬픈 이야기.."] },
+        { name: "슈퍼 당당 해정", image: "박소원생일/13.jpg", grade: "hero", chance: 3, messages: ["사나이로!", "태어나서!"] },
+        { name: "시발 박은정", image: "박소원생일/14.jpg", grade: "hero", chance: 3, messages: ["욕", "설"] },
+        { name: "🫧🫧", image: "박소원생일/15.jpg", grade: "hero", chance: 3, messages: ["🫧🫧🫧🫧🫧", "🫧🫧🫧🫧🫧"] },
+        { name: "고민박소원", image: "박소원생일/16.jpg", grade: "hero", chance: 3, messages: ["...", "..."] },
+        { name: "날아오르라~", image: "박소원생일/17.jpg", grade: "myth", chance: 2, messages: ["날아오르라~", "주작이여~"] },
+        { name: "세로 박소원", image: "박소원생일/18.jpg", grade: "myth", chance: 1, messages: ["세로로", "짧은"] },
+        { name: "이상한 애들", image: "박소원생일/19.jpg", grade: "myth", chance: 1, messages: ["해정이,박은정", "박소원"] },
+        { name: "도촬 금지!", image: "박소원생일/20.jpg", grade: "myth", chance: 1, messages: ["연예인이에요", "찍지마세요!!"] },
+        { name: "밋밋한 해정이", image: "박소원생일/21.jpg", grade: "myth", chance: 1, messages: ["엥..", "밋밋해.."] },
+        { name: "나 사실 남자임 ㅋ", image: "박소원생일/22.jpg", grade: "myth", chance: 1, messages: ["나 사실 남자임", "만우절~"] },
+        { name: "화가 해정이", image: "박소원생일/23.jpg", grade: "myth", chance: 1, messages: ["개쩌는!!!!", "해정이의..!"] },
+        { name: "빵긋 박소원", image: "박소원생일/24.jpg", grade: "myth", chance: 1, messages: ["자 웃으세요", "치즈~"] },
+        { name: "기괴한 해정이", image: "박소원생일/25.jpg", grade: "myth", chance: 1, messages: ["오오", "기괴해"] },
+        { name: "체육복 박소원", image: "박소원생일/26.jpg", grade: "myth", chance: 1, messages: ["패션굿", "체육복의"] },
+        
+
+
+      ],
+      legendary: [
+        { name: "시발년 정아영", image: "박소원생일/7.jpg", grade: "epic", chance: 11, messages: ["키 ㅈㄴ 작은!", "ㅅㅂ년!"] },
+        { name: "바른 나무 위원회", image: "박소원생일/8.jpg", grade: "epic", chance: 11, messages: ["바른!", "나무 위원회!"] },
+        { name: "카훗 3등", image: "박소원생일/9.jpg", grade: "epic", chance: 11, messages: ["해정이의!", "3등상!"] },
+        { name: "잼민펀치", image: "박소원생일/10.jpg", grade: "epic", chance: 11, messages: ["받아라!", "잼민이의!"] },
+        { name: "비눗방울 박은정", image: "박소원생일/11.jpg", grade: "hero", chance: 3, messages: ["못생긴!", "비눗방울 속!"] },
+        { name: "감성충 해정이", image: "박소원생일/12.jpg", grade: "hero", chance: 3, messages: ["한 남자의", "슬픈 이야기.."] },
+        { name: "슈퍼 당당 해정", image: "박소원생일/13.jpg", grade: "hero", chance: 3, messages: ["사나이로!", "태어나서!"] },
+        { name: "시발 박은정", image: "박소원생일/14.jpg", grade: "hero", chance: 3, messages: ["욕", "설"] },
+        { name: "🫧🫧", image: "박소원생일/15.jpg", grade: "hero", chance: 3, messages: ["🫧🫧🫧🫧🫧", "🫧🫧🫧🫧🫧"] },
+        { name: "고민박소원", image: "박소원생일/16.jpg", grade: "hero", chance: 3, messages: ["...", "..."] },
+        { name: "날아오르라~", image: "박소원생일/17.jpg", grade: "myth", chance: 2, messages: ["날아오르라~", "주작이여~"] },
+        { name: "세로 박소원", image: "박소원생일/18.jpg", grade: "myth", chance: 1, messages: ["세로로", "짧은"] },
+        { name: "이상한 애들", image: "박소원생일/19.jpg", grade: "myth", chance: 1, messages: ["해정이,박은정", "박소원"] },
+        { name: "도촬 금지!", image: "박소원생일/20.jpg", grade: "myth", chance: 1, messages: ["연예인이에요", "찍지마세요!!"] },
+        { name: "밋밋한 해정이", image: "박소원생일/21.jpg", grade: "myth", chance: 1, messages: ["엥..", "밋밋해.."] },
+        { name: "나 사실 남자임 ㅋ", image: "박소원생일/22.jpg", grade: "myth", chance: 1, messages: ["나 사실 남자임", "만우절~"] },
+        { name: "화가 해정이", image: "박소원생일/23.jpg", grade: "myth", chance: 1, messages: ["개쩌는!!!!", "해정이의..!"] },
+        { name: "빵긋 박소원", image: "박소원생일/24.jpg", grade: "myth", chance: 1, messages: ["자 웃으세요", "치즈~"] },
+        { name: "기괴한 해정이", image: "박소원생일/25.jpg", grade: "myth", chance: 1, messages: ["오오", "기괴해"] },
+        { name: "체육복 박소원", image: "박소원생일/26.jpg", grade: "myth", chance: 1, messages: ["패션굿", "체육복의"] },
+        { name: "션인쟝", image: "박소원생일/27.jpg", grade: "myth", chance: 2, messages: ["작년의..", "선물!!"] },
+        { name: "겨울날 해정이", image: "박소원생일/28.jpg", grade: "myth", chance: 2, messages: ["아잇추워!", "겨울닐"] },
+        { name: "꺼억 박소원", image: "박소원생일/29.jpg", grade: "myth", chance: 2, messages: ["다 들어와~", "다 먹어주지!!"] },
+        { name: "눈깔 박은정", image: "박소원생일/30.jpg", grade: "myth", chance: 2, messages: ["야 너 뭘 봐", "꼽냐? ㅋ"] },
+        { name: "키 커져라! 박소원", image: "박소원생일/31.jpg", grade: "myth", chance: 2, messages: ["키 크기 운동", "시작!"] },
+        { name: "블루해정", image: "박소원생일/32.jpg", grade: "myth", chance: 2, messages: ["해정이의", "블루색!"] },
+        { name: "주짓인 박소원", image: "박소원생일/33.jpg", grade: "myth", chance: 2, messages: ["주짓수", "집에가다.."] },
+        { name: "왕관빨 해정이", image: "박소원생일/34.jpg", grade: "myth", chance: 1, messages: ["초통령(?)", "해정이의"] },
+        { name: "단발 박소원", image: "박소원생일/35.jpg", grade: "myth", chance: 2, messages: ["나는", "박소원"] },
+        { name: "울집 강아지", image: "박소원생일/36.jpg", grade: "myth", chance: 1, messages: ["사랑해~", "울집강아지~"] },
+        { name: "울집 강아지1", image: "박소원생일/37.jpg", grade: "myth", chance: 1, messages: ["사랑해~", "울집강아지~"] },
+        { name: "치즈 박소원", image: "박소원생일/38.jpg", grade: "myth", chance: 2, messages: ["여기보세요", "치즈~!"] },
+        { name: "개졸린 해정이", image: "박소원생일/39.jpg", grade: "myth", chance: 1, messages: ["네?", "아 네.."] },
+        { name: "못생긴 해정이", image: "박소원생일/40.jpg", grade: "myth", chance: 1, messages: ["ㅈㄴ 이상해", "왜저래"] },
+        { name: "?? 박소원", image: "박소원생일/41.jpg", grade: "myth", chance: 2, messages: ["키스하는(?)", "박소원!"] },
+        { name: "기깔나는 박소원", image: "박소원생일/42.jpg", grade: "myth", chance: 1.5, messages: ["기깔나는", "바악소오워언"] },
+        { name: "생일 축하 합니다~", image: "박소원생일/43.jpg", grade: "legend", chance: 0.5, messages: ["박소원", "생일축하요~"] },
+
+        
+      ]
+    };
+
+    const drawCosts = {
+      normal: { one: 100, ten: 1000 },
+      premium: { one: 3000, ten: 30000 },
+      legendary: { one: 99999, ten: 1000000 }
+    };
+
+    const selectedBoxState = { value: "normal" };
+
+    function updateDrawCostText() {
+      const cost = drawCosts[selectedBoxState.value];
+      document.getElementById("drawCostDisplay").textContent =
+        `💰 1회: ${cost.one.toLocaleString()} / 10회: ${cost.ten.toLocaleString()}`;
+    }
+
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function setCookie(name, value, days = 365) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
+    }
+
+    function initCoins() {
+      if (!getCookie("coins")) setCookie("coins", "1000");
+    }
+
+    function updateCoinDisplay() {
+      document.getElementById("coinAmount").textContent = getCookie("coins") || "0";
+    }
+
+    function getInventory() {
+      const inv = getCookie("inventory");
+      return inv ? JSON.parse(inv) : [];
+    }
+
+    function saveInventory(inventory) {
+      setCookie("inventory", JSON.stringify(inventory));
+    }
+
+    function saveToInventory(item) {
+      let inventory = getInventory();
+      const existing = inventory.find(i => i.name === item.name);
+      if (existing) existing.count++;
+      else inventory.push({ ...item, count: 1 });
+      inventory.sort((a, b) => a.name.localeCompare(b.name));
+      saveInventory(inventory);
+    }
+
+    function playSound(id) {
+      if (getCookie("sound") === "off") return;
+      const audio = document.getElementById(id);
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+    }
+
+    function getRandomItem(boxType) {
+      const pool = boxes[boxType];
+      const weighted = [];
+      pool.forEach(item => {
+        for (let i = 0; i < item.chance; i++) weighted.push(item);
+      });
+      return weighted[Math.floor(Math.random() * weighted.length)];
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function showDrawAnimation(item, isLast = false) {
+  const gradeInfo = grades[item.grade];
+  const drawScreen = document.getElementById("drawScreen");
+  const drawTeam = document.getElementById("drawTeam");
+  const drawItem = document.getElementById("drawItem");
+  const drawItemImg = document.getElementById("drawItemImg");
+  const drawItemName = document.getElementById("drawItemName");
+
+  // 초기화
+  drawScreen.style.display = "flex";
+  drawItem.style.opacity = "0";
+  drawTeam.style.opacity = "0";
+  drawItemImg.src = ""; // 초기화 (중요)
+  drawItemName.textContent = "";
+
+  const [msg1, msg2] = item.messages || ["아이템 획득!", ""];
+
+  drawTeam.textContent = msg1;
+  drawTeam.style.color = gradeInfo.color;
+
+  try {
+    const textSound = document.getElementById("soundText");
+    textSound.currentTime = 0;
+    await textSound.play();
+  } catch (e) {}
+
+  // 첫 번째 메시지
+  drawTeam.style.opacity = "1";
+  await sleep(1000);
+
+  drawTeam.style.opacity = "0";
+  await sleep(300);
+
+  // 두 번째 메시지
+  drawTeam.textContent = msg2;
+  drawTeam.style.opacity = "1";
+  await sleep(1000);
+
+  // 메시지 숨기고 이미지/이름 표시
+  drawTeam.style.opacity = "0";
+  await sleep(200);
+
+  drawItemImg.src = item.image;
+  drawItemName.textContent = item.name;
+  drawItemName.style.color = gradeInfo.color;
+  drawItemName.style.textShadow = `0 0 15px ${gradeInfo.color}`;
+  drawItem.style.opacity = "1";
+
+  if (isLast) {
+    try {
+      const finalSound = document.getElementById("soundFinal");
+      finalSound.currentTime = 0;
+      await finalSound.play();
+    } catch (e) {}
+  }
+
+  await sleep(1200);
+  drawScreen.style.display = "none";
+}
+
+
+    async function draw(times) {
+      const cost = drawCosts[selectedBoxState.value];
+      const totalCost = times === 1 ? cost.one : cost.ten;
+      let coin = parseInt(getCookie("coins"));
+      if (coin < totalCost) {
+        alert("코인이 부족합니다.");
+        return;
+      }
+
+      const inventoryNames = getInventory().map(i => i.name);
+      const newInventoryNames = [...inventoryNames];
+      const duplicateItems = [];
+      const newItems = [];
+
+      for (let i = 0; i < times; i++) {
+        const item = getRandomItem(selectedBoxState.value);
+        const isDuplicate = newInventoryNames.includes(item.name);
+        saveToInventory(item);
+        if (isDuplicate) duplicateItems.push(item);
+        else {
+          newItems.push(item);
+          newInventoryNames.push(item.name);
+        }
+      }
+
+      setCookie("coins", String(coin - totalCost));
+      updateCoinDisplay();
+
+      for (let i = 0; i < newItems.length; i++) {
+        const isLast = i === newItems.length - 1;
+        await showDrawAnimation(newItems[i], isLast);
+      }
+
+      if (duplicateItems.length > 0) showDrawResults(duplicateItems);
+    }
+
+    function showDrawResults(items) {
+      const resultGrid = document.getElementById("resultGrid");
+      resultGrid.innerHTML = "";
+      items.forEach(item => {
+        const grade = grades[item.grade];
+        const card = document.createElement("div");
+        card.className = "result-card";
+        card.innerHTML = `<img src="${item.image}" /><div style="color: ${grade.color}; font-weight: bold;">${item.name}</div>`;
+        resultGrid.appendChild(card);
+      });
+      document.getElementById("drawResults").style.display = "flex";
+    }
+
+    function hideDrawResults() {
+      document.getElementById("drawResults").style.display = "none";
+    }
+
+    function playDrawSound() {
+      const sound = document.getElementById("soundStart");
+      try {
+        sound.currentTime = 0;
+        sound.play();
+      } catch (e) {}
+    }
+
+    document.querySelectorAll(".box-option").forEach(option => {
+      option.onclick = () => {
+        document.querySelectorAll(".box-option").forEach(o => o.classList.remove("selected"));
+        option.classList.add("selected");
+        selectedBoxState.value = option.dataset.box;
+        updateDrawCostText();
+      };
+    });
+
+    async function tryDraw(times) {
+      playDrawSound();
+      await draw(times);
+    }
+
+    document.getElementById("draw1Btn").onclick = () => tryDraw(1);
+    document.getElementById("draw10Btn").onclick = () => tryDraw(10);
+
+    function resetData() {
+      if (confirm("정말 초기화하시겠습니까?")) {
+        setCookie("coins", "1000");
+        setCookie("inventory", "[]");
+        updateCoinDisplay();
+      }
+    }
+
+    initCoins();
+    updateCoinDisplay();
+    updateDrawCostText();
+  </script>
+</body>
+</html>

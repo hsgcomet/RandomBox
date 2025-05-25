@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>설정</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0a0d2b;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .setting-container {
+      background-color: #151a3a;
+      border: 3px solid gold;
+      padding: 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), inset 0 0 20px gold;
+    }
+    h1 {
+      text-align: center;
+      color: gold;
+      margin-bottom: 30px;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.5);
+    }
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      background-color: #1e2547;
+      color: #fff;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .confirm-btn {
+      background: gold;
+      color: #333;
+    }
+    .back-btn {
+      background: #444;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="setting-container">
+    <h1>⚙️ 설정</h1>
+
+    <!-- 효과음 설정 -->
+    
+
+    <!-- 관리자 모드 -->
+    <div style="margin-top: 30px;">
+      <label style="justify-content: flex-start;">🔐 관리자 모드</label>
+      <input type="password" id="adminInput" placeholder="비밀번호 입력" />
+      <button class="confirm-btn" onclick="checkAdmin()">확인</button>
+    </div>
+
+   <!-- 확률표 보기 버튼 -->
+<button class="confirm-btn" style="margin-top: 20px;" onclick="window.open('https:docs.google.com/spreadsheets/d/1bPMWuu_V64VOmBPAYxIOvs6WqZKaE1TFWmtHYGHtJpo/edit?gid=0#gid=0')">
+  📊 확률표 보기
+</button>
+
+
+
+    <button class="back-btn" onclick="location.href='index.html'">← 돌아가기</button>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function setCookie(name, value, days = 365) {
+      const d = new Date();
+      d.setTime(d.getTime() + days * 86400000);
+      document.cookie = name + "=" + encodeURIComponent(value) + "; expires=" + d.toUTCString() + "; path=/";
+    }
+
+    // 효과음 체크박스 초기화 및 변경 이벤트
+    const soundToggle = document.getElementById("soundToggle");
+    window.onload = () => {
+      soundToggle.checked = getCookie("sound") !== "off";
+    };
+    soundToggle.onchange = () => {
+      setCookie("sound", soundToggle.checked ? "on" : "off");
+    };
+
+    // 관리자 비밀번호 검사
+    function checkAdmin() {
+      const input = document.getElementById("adminInput").value.trim();
+      if (input === "0522") {
+        setCookie("coins", "9999999999");
+        alert("✅ 관리자 권한으로 코인이 추가되었습니다");
+      } else {
+        alert("❌ 비밀번호가 틀렸습니다.");
+      }
+    }
+  </script>
+</body>
+</html>
